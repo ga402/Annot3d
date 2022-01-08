@@ -1,7 +1,7 @@
 # Import necessary modules
 import sys, os, cv2
 import numpy as np
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QLabel, QPushButton, QCheckBox, QSpinBox, QDoubleSpinBox, QFrame, QFileDialog, QMessageBox, QHBoxLayout, QVBoxLayout, QAction)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QToolButton, QWidget, QLabel, QPushButton, QCheckBox, QSpinBox, QDoubleSpinBox, QFrame, QFileDialog, QMessageBox, QHBoxLayout, QVBoxLayout, QAction)
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import Qt
 from libs.imagefuncs import readNdArray
@@ -26,7 +26,7 @@ class annot3dGUI(QMainWindow):
     def initializeUI(self):
         """Initialize the window and display its contents to the screen."""
         self.setMinimumSize(900, 600)
-        self.setWindowTitle('5.1 - Image Processing GUI')
+        self.setWindowTitle('Annot3d')
         self.contrast_adjusted = False
         self.brightness_adjusted = False
         #self.image_smoothing_checked = False
@@ -56,6 +56,43 @@ class annot3dGUI(QMainWindow):
         self.brightness_spinbox.setSingleStep(1)
         self.brightness_spinbox.valueChanged.connect(self.adjustBrightness)
         
+        # 4. depth scroll bar
+        depth_label = QLabel("Depth")
+        self.down_btn = QPushButton("Down", self)
+        self.down_btn.setEnabled(True)
+        self.down_btn.setGeometry(100, 70, 60, 40)
+        self.down_btn.clicked.connect(self.pushDownButton)
+        self.down_btn.clicked.connect(self.pushUpButton)
+        self.down_btn.clicked.connect(self.setFocus)
+        self.down_btn.setShortcut('c')
+        self.up_btn = QPushButton("Up", self)
+        self.up_btn.setEnabled(True)
+        self.up_btn.setGeometry(50, 70, 60, 40)
+        self.up_btn.clicked.connect(self.pushUpButton)
+        self.up_btn.clicked.connect(self.setFocus)
+        self.up_btn.setShortcut('e')
+        
+        # 5. Directions 
+        directions_label = QLabel("Directions (XY plane)")
+        self.joystick_up_btn = QToolButton()
+        self.joystick_up_btn.setArrowType(Qt.UpArrow)
+        self.joystick_up_btn.clicked.connect(self.joystick_up)
+        self.joystick_up_btn.setFixedWidth(75)
+        
+        self.joystick_down_btn = QToolButton()
+        self.joystick_down_btn.setArrowType(Qt.DownArrow)
+        self.joystick_down_btn.clicked.connect(self.joystick_down)
+        self.joystick_down_btn.setFixedWidth(75)
+        
+        self.joystick_left_btn = QToolButton()
+        self.joystick_left_btn.setArrowType(Qt.LeftArrow)
+        self.joystick_left_btn.clicked.connect(self.joystick_left)
+        self.joystick_left_btn.setFixedWidth(75)
+        
+        self.joystick_right_btn = QToolButton()
+        self.joystick_right_btn.setArrowType(Qt.RightArrow)
+        self.joystick_right_btn.clicked.connect(self.joystick_right)
+        self.joystick_right_btn.setFixedWidth(75)
         
         # 4. Smoothing widget
         #smoothing_label = QLabel("Image Smoothing Filters")
@@ -79,14 +116,29 @@ class annot3dGUI(QMainWindow):
         side_panel_v_box.addWidget(self.contrast_spinbox)
         side_panel_v_box.addWidget(brightness_label)
         side_panel_v_box.addWidget(self.brightness_spinbox)
-        side_panel_v_box.addSpacing(15)
         #side_panel_v_box.addWidget(smoothing_label)
         #side_panel_v_box.addWidget(self.filter_2D_cb)
         #side_panel_v_box.addWidget(edges_label)
         #side_panel_v_box.addWidget(self.canny_cb)
         #side_panel_v_box.addWidget(self.apply_process_button)
-        side_panel_v_box.addStretch(1)
+        #side_panel_v_box.addStretch(1)
         side_panel_v_box.addWidget(reset_button)
+        side_panel_v_box.addSpacing(15)
+        
+        side_panel_v_box.addWidget(depth_label)
+        side_panel_v_box.addWidget(self.up_btn)
+        side_panel_v_box.addWidget(self.down_btn)
+        side_panel_v_box.addSpacing(5)
+        side_panel_v_box.addWidget(directions_label)
+        side_panel_v_box.addWidget(self.joystick_up_btn, alignment=Qt.AlignCenter)
+        
+        left_right_row = QHBoxLayout()
+        left_right_row.addWidget(self.joystick_left_btn)
+        left_right_row.addWidget(self.joystick_right_btn)                           
+        side_panel_v_box.addLayout(left_right_row)
+        side_panel_v_box.addWidget(self.joystick_down_btn, alignment=Qt.AlignCenter)
+         
+        
         side_panel_frame = QFrame()
         side_panel_frame.setMinimumWidth(200)
         side_panel_frame.setFrameStyle(QFrame.WinPanel)
