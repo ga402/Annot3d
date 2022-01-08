@@ -68,9 +68,11 @@ class annot3dGUI(QMainWindow):
         self.up_btn = QPushButton("Up", self)
         self.up_btn.setEnabled(True)
         self.up_btn.setGeometry(50, 70, 60, 40)
+        #self.up_btn.clicked.connect(self.setFocus)
+        self.up_btn.setShortcut('e')
         self.up_btn.clicked.connect(self.pushUpButton)
         self.up_btn.clicked.connect(self.setFocus)
-        self.up_btn.setShortcut('e')
+   
         
         # 5. Directions 
         directions_label = QLabel("Directions (XY plane)")
@@ -78,21 +80,25 @@ class annot3dGUI(QMainWindow):
         self.joystick_up_btn.setArrowType(Qt.UpArrow)
         self.joystick_up_btn.clicked.connect(self.joystick_up)
         self.joystick_up_btn.setFixedWidth(75)
+        self.joystick_up_btn.setShortcut("w")
         
         self.joystick_down_btn = QToolButton()
         self.joystick_down_btn.setArrowType(Qt.DownArrow)
         self.joystick_down_btn.clicked.connect(self.joystick_down)
         self.joystick_down_btn.setFixedWidth(75)
+        self.joystick_down_btn.setShortcut("x")
         
         self.joystick_left_btn = QToolButton()
         self.joystick_left_btn.setArrowType(Qt.LeftArrow)
         self.joystick_left_btn.clicked.connect(self.joystick_left)
         self.joystick_left_btn.setFixedWidth(75)
+        self.joystick_left_btn.setShortcut("a")
         
         self.joystick_right_btn = QToolButton()
         self.joystick_right_btn.setArrowType(Qt.RightArrow)
         self.joystick_right_btn.clicked.connect(self.joystick_right)
         self.joystick_right_btn.setFixedWidth(75)
+        self.joystick_right_btn.setShortcut("d")
         
         # 4. Smoothing widget
         #smoothing_label = QLabel("Image Smoothing Filters")
