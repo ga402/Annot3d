@@ -44,6 +44,26 @@ class annot3d(annot3dGUI):
         """The slot corresponding to adjusting image brightness."""
         if self.image_label.pixmap() != None:
             self.brightness_adjusted = True
+    
+    
+    
+    def pushDownButton(self):
+        pass
+
+    def pushUpButton(self):
+        pass
+
+    def joystick_up(self):
+        pass
+    
+    def joystick_down(self):
+        pass
+
+    def joystick_left(self):
+        pass
+
+    def joystick_right(self):
+        pass
 
     #def imageSmoothingFilter(self, state):
     #    """The slot corresponding to applying 2D Convolution for smoothing the image."""
