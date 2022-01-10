@@ -42,7 +42,7 @@ class annot3dGUI(QMainWindow):
         self.image_label = QLabel()
         self.image_label.setObjectName("ImageLabel")
         ### add a drawCanvas
-        self.image_label.addWidget(drawCanvas)
+        #self.image_label.addWidget(drawCanvas)
         
         # 2. Contrast range widget
         contrast_label = QLabel("Contrast [Range: 0.0:4.0]")
