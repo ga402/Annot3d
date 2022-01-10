@@ -4,7 +4,9 @@ import numpy as np
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QToolButton, QWidget, QLabel, QPushButton, QCheckBox, QSpinBox, QDoubleSpinBox, QFrame, QFileDialog, QMessageBox, QHBoxLayout, QVBoxLayout, QAction)
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QTimer
 from libs.imagefuncs import readNdArray
+from drawCanvas import *
 
 style_sheet = """
     QLabel#ImageLabel{
@@ -39,6 +41,9 @@ class annot3dGUI(QMainWindow):
         # 1. Image label widget
         self.image_label = QLabel()
         self.image_label.setObjectName("ImageLabel")
+        ### add a drawCanvas
+        self.image_label.addWidget(drawCanvas)
+        
         # 2. Contrast range widget
         contrast_label = QLabel("Contrast [Range: 0.0:4.0]")
         self.contrast_spinbox = QDoubleSpinBox()
@@ -62,7 +67,6 @@ class annot3dGUI(QMainWindow):
         self.down_btn.setEnabled(True)
         self.down_btn.setGeometry(100, 70, 60, 40)
         self.down_btn.clicked.connect(self.pushDownButton)
-        self.down_btn.clicked.connect(self.pushUpButton)
         self.down_btn.clicked.connect(self.setFocus)
         self.down_btn.setShortcut('c')
         self.up_btn = QPushButton("Up", self)
@@ -99,15 +103,7 @@ class annot3dGUI(QMainWindow):
         self.joystick_right_btn.clicked.connect(self.joystick_right)
         self.joystick_right_btn.setFixedWidth(75)
         self.joystick_right_btn.setShortcut("d")
-        
-        # 4. Smoothing widget
-        #smoothing_label = QLabel("Image Smoothing Filters")
-        #self.filter_2D_cb = QCheckBox("2D Convolution")
-        #self.filter_2D_cb.stateChanged.connect(self.imageSmoothingFilter)
-        #edges_label = QLabel("Detect Edges")
-        #self.canny_cb = QCheckBox("Canny Edge Detector")
-        #self.canny_cb.stateChanged.connect(self.edgeDetection)
-        
+                
         # apply process button
         self.apply_process_button = QPushButton("Apply Processes")
         self.apply_process_button.setEnabled(False)
@@ -122,12 +118,6 @@ class annot3dGUI(QMainWindow):
         side_panel_v_box.addWidget(self.contrast_spinbox)
         side_panel_v_box.addWidget(brightness_label)
         side_panel_v_box.addWidget(self.brightness_spinbox)
-        #side_panel_v_box.addWidget(smoothing_label)
-        #side_panel_v_box.addWidget(self.filter_2D_cb)
-        #side_panel_v_box.addWidget(edges_label)
-        #side_panel_v_box.addWidget(self.canny_cb)
-        #side_panel_v_box.addWidget(self.apply_process_button)
-        #side_panel_v_box.addStretch(1)
         side_panel_v_box.addWidget(reset_button)
         side_panel_v_box.addSpacing(15)
         
@@ -156,6 +146,7 @@ class annot3dGUI(QMainWindow):
         container = QWidget()
         container.setLayout(main_h_box)
         self.setCentralWidget(container)
+        QTimer.singleShot(0, self.up_btn.setFocus)
         
         
     def setupMenu(self):
