@@ -1,11 +1,12 @@
 # Import necessary modules
+from abc import abstractmethod
 import sys, os, cv2
 import numpy as np
 from PyQt5.QtWidgets import (
     QApplication,
+    QLabel,
     QMainWindow,
     QWidget,
-    QLabel,
     QPushButton,
     QCheckBox,
     QSpinBox,
@@ -17,10 +18,23 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QAction,
 )
-from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtGui import QPixmap, QImage, QColor
 from PyQt5.QtCore import Qt
+#from drawCanvas import drawRectangle
 from libs.imagefuncs import readNdArray
 from annot3dGUI import annot3dGUI
+from typing import Final
+from drawCanvas import *
+#from libs.shape import Shape
+#from libs.measure import distance
+
+CURSOR_DEFAULT = Qt.ArrowCursor
+CURSOR_POINT = Qt.PointingHandCursor
+CURSOR_DRAW = Qt.CrossCursor
+CURSOR_MOVE = Qt.ClosedHandCursor
+CURSOR_GRAB = Qt.OpenHandCursor
+
+
 
 style_sheet = """
     QLabel#ImageLabel{
@@ -30,10 +44,25 @@ style_sheet = """
     }"""
 
 
-class annot3d(annot3dGUI):
+class annot3d(annot3dGUI, QWidget):
     def __init__(self):
         super().__init__()
         self.initializeUI()
+        self._cursor = CURSOR_DEFAULT
+        self.drawing_line_color = QColor(255, 255, 0)
+        self.drawing_rect_color = QColor(255, 255, 0)
+        self.z = 0
+        self.y = 0
+        self.x = 0
+        self.xy_adjust = 10
+        self.y_length: Final = 512
+        self.x_length: Final = 512
+        self._pixmap= QPixmap(self.y_length, self.x_length) 
+        #self.x0 = 0
+        #self.y0 = 0
+        #self.x1 = 0
+        #self.y1 = 0
+        self.flag = False
 
     def adjustContrast(self):
         """The slot corresponding to adjusting image contrast."""
@@ -44,26 +73,85 @@ class annot3d(annot3dGUI):
         """The slot corresponding to adjusting image brightness."""
         if self.image_label.pixmap() != None:
             self.brightness_adjusted = True
-    
-    
+     
     
     def pushDownButton(self):
-        pass
+        if (self.z -1) < 0:
+            self.z = self.z
+        else:
+            self.z = self.z -1
+            
+        img = self.subsetImage(self.arr, self.z, self.x, self.y)
+        self.convert2DArrToQImage(img)  
 
     def pushUpButton(self):
-        pass
+        if (self.z + 1) >= self.z_max-1:
+            self.z = self.z_max -1
+        else:
+            self.z = self.z + 1
+            
+        img = self.subsetImage(self.arr, self.z, self.x, self.y)
+        self.convert2DArrToQImage(img)  
 
     def joystick_up(self):
-        pass
+        if (self.y + self.xy_adjust) >= self.y_max-1:
+            self.y = self.y_max -1
+        else:
+            self.y = self.y +self.xy_adjust
+        img = self.subsetImage(self.arr, self.z, self.x, self.y)
+        self.convert2DArrToQImage(img)  
     
     def joystick_down(self):
-        pass
+        if (self.y - self.xy_adjust) <0:
+            self.y = 0
+        else:
+            self.y = self.y -self.xy_adjust
+        img = self.subsetImage(self.arr, self.z, self.x, self.y)
+        self.convert2DArrToQImage(img)  
 
     def joystick_left(self):
-        pass
+        if (self.x - self.xy_adjust) <0:
+            self.x = 0
+        else:
+            self.x = self.x -self.xy_adjust
+        img = self.subsetImage(self.arr, self.z, self.x, self.y)
+        self.convert2DArrToQImage(img)  
 
     def joystick_right(self):
-        pass
+        if (self.x + 1) >= self.x_max-1:
+            self.x = self.x_max -1
+        else:
+            self.x = self.x +self.xy_adjust
+        img = self.subsetImage(self.arr, self.z, self.x, self.y)
+        self.convert2DArrToQImage(img)  
+    
+    # mouse events
+    def mousePressEvent(self,event):
+        self.flag = True
+        self.x0 = event.x()
+        self.y0 = event.y()
+        #Mouse release event
+    def mouseReleaseEvent(self,event):
+        self.flag = False
+        #Mouse movement events
+    def mouseMoveEvent(self,event):
+        if self.flag:
+            self.x1 = event.x()
+            self.y1 = event.y()
+            self.image_label.update()
+
+            #Draw events
+    def paintEvent(self, event): 
+        if self.flag and self.image_file:
+            super().paintEvent(event)
+            rect =QRect(self.x0, self.y0, abs(self.x1-self.x0), abs(self.y1-self.y0))
+            painter = QPainter(self)
+            painter.drawPixmap(self.rect(), self.image_label.pixmap())
+            #painter.setRenderHint(QPainter.Antialiasing, True)
+            painter.setPen(QPen(QColor(255, 255, 0),2,Qt.SolidLine))
+            painter.drawRect(rect)
+    
+            #self.image_label.update()
 
     #def imageSmoothingFilter(self, state):
     #    """The slot corresponding to applying 2D Convolution for smoothing the image."""
@@ -84,14 +172,10 @@ class annot3d(annot3dGUI):
         if self.contrast_adjusted == True or self.brightness_adjusted == True:
             contrast = self.contrast_spinbox.value()
             brightness = self.brightness_spinbox.value()
+            
             self.cv_image = cv2.convertScaleAbs(
                 self.cv_image, self.processed_cv_image, contrast, brightness
             )
-        #if self.image_smoothing_checked == True:
-        #    kernel = np.ones((5, 5), np.float32) / 25
-        #    self.cv_image = cv2.filter2D(self.cv_image, -1, kernel)
-        #if self.edge_detection_checked == True:
-        #    self.cv_image = cv2.Canny(self.cv_image, 100, 200)
         self.convertCVToQImage(self.cv_image)
         self.image_label.repaint()  # Repaint the updated image on the label
 
@@ -115,18 +199,17 @@ class annot3d(annot3dGUI):
         """Reset the spinbox and checkbox values to their beginning values."""
         self.contrast_spinbox.setValue(1.0)
         self.brightness_spinbox.setValue(0)
-        #self.filter_2D_cb.setChecked(False)
-        #self.canny_cb.setChecked(False)
+
 
     def openImageFile(self):
         """Open an image file and display the contents in the label widget."""
-        image_file, _ = QFileDialog.getOpenFileName(
-            self, "Open Image", os.getenv("HOME"), "Images (*.png *.jpeg *.jpg *.bmp)"
+        self.image_file, _ = QFileDialog.getOpenFileName(
+            self, "Open Image", os.getcwd() + "/../images", "Images (*.png *.jpeg *.jpg *.bmp)"
         )
-        if image_file:
+        if self.image_file:
             self.resetWidgetValues()  # Reset the states of the widgets
             self.apply_process_button.setEnabled(True)
-            self.cv_image = cv2.imread(image_file)  # Original image
+            self.cv_image = cv2.imread(self.image_file)  # Original image
             self.copy_cv_image = self.cv_image  # A copy of the original image
             # Create a destination image for the contrast and brightness processes
             self.processed_cv_image = np.zeros(self.cv_image.shape, self.cv_image.dtype)
@@ -140,19 +223,20 @@ class annot3d(annot3dGUI):
 
     def openArrayFile(self):
         """Open an image file and display the contents in the label widget."""
-        array_file, _ = QFileDialog.getOpenFileName(
+        self.image_file, _ = QFileDialog.getOpenFileName(
             self, "Open Image", os.getcwd() + "/../images", "nd.array file (*.npy)"
         )
-        if array_file:
+        if self.image_file:
             self.resetWidgetValues()  # Reset the states of the widgets
             self.apply_process_button.setEnabled(True)
-            self.arr = readNdArray(array_file)  # Original image
+            self.arr = readNdArray(self.image_file)  # Original image
+            self.z_max, self.y_max, self.x_max, _ = self.arr.shape
             self.copy_arr = self.arr.copy()  # A copy of the original image
             # Create a destination image for the contrast and brightness processes
             self.processed_arr = np.zeros(self.arr.shape, dtype=int)
-            self.convert2DArrToQImage(
-                self.arr[0, 0:512, 0:512, :].squeeze()
-            )  # Convert the OpenCV image to a Qt Image
+        
+            img = self.subsetImage(self.arr, self.z, self.x, self.y)
+            self.convert2DArrToQImage(img)  # Convert the OpenCV image to a Qt Image
         else:
             QMessageBox.information(
                 self, "Error", "No image was loaded.", QMessageBox.Ok
@@ -176,6 +260,7 @@ class annot3d(annot3dGUI):
 
     def convertCVToQImage(self, image):
         """Load a cv image and convert the image to a Qt QImage. Display the image in image_label."""
+        #self.image_label = drawCanvas(self)
         cv_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         # Get the shape of the image, height * width * channels. BGR/RGB/HSV images have 3 channels
         height, width, channels = cv_image.shape  # Format: (rows, columns, channels)
@@ -190,10 +275,46 @@ class annot3d(annot3dGUI):
                 self.image_label.width(), self.image_label.height(), Qt.KeepAspectRatio
             )
         )
+        self.image_label.setCursor(Qt.CrossCursor)
+        self.show()
+
+
+
+    def subsetImage(self, image, z, x, y):
+        
+        if z >= self.z_max and z >= 0:
+            z = self.z_max
+        elif z <0:
+            z = 0
+                        
+        if ((x + self.x_length) >= self.x_max) and x >=0:
+            x1 = self.x_max
+            x0 = self.x_max - self.x_length
+        elif x <0:
+            x0 = 0
+            x1 = self.x_length 
+        else:
+            x0 = x
+            x1 = x + self.x_length
+        
+        if (y + self.x_length) >= self.y_max:
+            y1 = self.y_max
+            y0 = self.y_max - self.y_length
+        elif x <0:
+            y0 = 0
+            y1 = self.y_length 
+        else:
+            y0 = y
+            y1 = y + self.y_length
+              
+        return image[z, x0:x1, y0:y1, :].squeeze()
+
+
 
     def convert2DArrToQImage(self, image):
         """Load a cv image and convert the image to a Qt QImage. Display the image in image_label."""
         
+        #self.image_label = drawCanvas(self)
         # transposition required to fit the Qimage format requires a C-order format
         image = np.transpose(image,(1,0,2)).copy()
         # Get the shape of the image, height * width * channels. BGR/RGB/HSV images have 3 channels
@@ -209,6 +330,8 @@ class annot3d(annot3dGUI):
                 self.image_label.width(), self.image_label.height(), Qt.KeepAspectRatio
             )
         )
+        self.image_label.setCursor(Qt.CrossCursor)
+        self.show()
 
 
 if __name__ == "__main__":
