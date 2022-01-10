@@ -4,6 +4,7 @@ import sys, os, cv2
 import numpy as np
 from PyQt5.QtWidgets import (
     QApplication,
+    QGraphicsPixmapItem,
     QLabel,
     QMainWindow,
     QWidget,
@@ -24,7 +25,8 @@ from PyQt5.QtCore import Qt
 from libs.imagefuncs import readNdArray
 from annot3dGUI import annot3dGUI
 from typing import Final
-from drawCanvas import *
+#from drawCanvas import *
+
 #from libs.shape import Shape
 #from libs.measure import distance
 
@@ -57,12 +59,12 @@ class annot3d(annot3dGUI, QWidget):
         self.xy_adjust = 10
         self.y_length: Final = 512
         self.x_length: Final = 512
-        self._pixmap= QPixmap(self.y_length, self.x_length) 
-        #self.x0 = 0
-        #self.y0 = 0
-        #self.x1 = 0
-        #self.y1 = 0
+        self.x0 = 0
+        self.y0 = 0
+        self.x1 = 0
+        self.y1 = 0
         self.flag = False
+        self.pixmap_item = QGraphicsPixmapItem()
 
     def adjustContrast(self):
         """The slot corresponding to adjusting image contrast."""
@@ -126,30 +128,30 @@ class annot3d(annot3dGUI, QWidget):
         self.convert2DArrToQImage(img)  
     
     # mouse events
-    def mousePressEvent(self,event):
-        self.flag = True
-        self.x0 = event.x()
-        self.y0 = event.y()
+    #def mousePressEvent(self,event):
+    #    self.flag = True
+    #    self.x0 = event.x()
+    #    self.y0 = event.y()
         #Mouse release event
-    def mouseReleaseEvent(self,event):
-        self.flag = False
+    #def mouseReleaseEvent(self,event):
+    #    self.flag = False
         #Mouse movement events
-    def mouseMoveEvent(self,event):
-        if self.flag:
-            self.x1 = event.x()
-            self.y1 = event.y()
-            self.image_label.update()
+    #def mouseMoveEvent(self,event):
+    #    if self.flag:
+    #        self.x1 = event.x()
+    #        self.y1 = event.y()
+    #        self.image_label.update()
 
             #Draw events
-    def paintEvent(self, event): 
-        if self.flag and self.image_file:
-            super().paintEvent(event)
-            rect =QRect(self.x0, self.y0, abs(self.x1-self.x0), abs(self.y1-self.y0))
-            painter = QPainter(self)
-            painter.drawPixmap(self.rect(), self.image_label.pixmap())
+    #def paintEvent(self, event): 
+    #    if self.flag and self.image_file:
+    #        super().paintEvent(event)
+    #        rect =QRect(self.x0, self.y0, abs(self.x1-self.x0), abs(self.y1-self.y0))
+    #        painter = QPainter(self)
+    #        painter.drawPixmap(self.rect(), self.image_label.pixmap())
             #painter.setRenderHint(QPainter.Antialiasing, True)
-            painter.setPen(QPen(QColor(255, 255, 0),2,Qt.SolidLine))
-            painter.drawRect(rect)
+    #        painter.setPen(QPen(QColor(255, 255, 0),2,Qt.SolidLine))
+    #        painter.drawRect(rect)
     
             #self.image_label.update()
 
@@ -270,13 +272,15 @@ class annot3d(annot3dGUI, QWidget):
         converted_Qt_image = QImage(
             cv_image, width, height, bytes_per_line, QImage.Format_RGB888
         )
-        self.image_label.setPixmap(
+        self.pixmap_item.setPixmap(
             QPixmap.fromImage(converted_Qt_image).scaled(
                 self.image_label.width(), self.image_label.height(), Qt.KeepAspectRatio
             )
         )
+        self.scene.addItem(self.pixmap_item)
         self.image_label.setCursor(Qt.CrossCursor)
-        self.show()
+        #self.image_label.setCursor(Qt.CrossCursor)
+        #self.show()
 
 
 
@@ -325,13 +329,13 @@ class annot3d(annot3dGUI, QWidget):
         converted_Qt_image = QImage(
             image, width, height, bytes_per_line, QImage.Format_RGB888
         )
-        self.image_label.setPixmap(
+        self.pixmap_item.setPixmap(
             QPixmap.fromImage(converted_Qt_image).scaled(
                 self.image_label.width(), self.image_label.height(), Qt.KeepAspectRatio
             )
         )
         self.image_label.setCursor(Qt.CrossCursor)
-        self.show()
+        self.scene.addItem(self.pixmap_item)
 
 
 if __name__ == "__main__":

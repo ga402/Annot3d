@@ -1,12 +1,12 @@
 # Import necessary modules
 import sys, os, cv2
 import numpy as np
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QToolButton, QWidget, QLabel, QPushButton, QCheckBox, QSpinBox, QDoubleSpinBox, QFrame, QFileDialog, QMessageBox, QHBoxLayout, QVBoxLayout, QAction)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QToolButton, QWidget, QLabel, QPushButton, QCheckBox,QGraphicsView,  QSpinBox, QDoubleSpinBox, QFrame, QFileDialog, QMessageBox, QHBoxLayout, QVBoxLayout, QAction)
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import QTimer
 from libs.imagefuncs import readNdArray
-from drawCanvas import *
+from GraphicsScene import *
 
 style_sheet = """
     QLabel#ImageLabel{
@@ -42,7 +42,7 @@ class annot3dGUI(QMainWindow):
         self.image_label = QLabel()
         self.image_label.setObjectName("ImageLabel")
         ### add a drawCanvas
-        #self.image_label.addWidget(drawCanvas)
+   
         
         # 2. Contrast range widget
         contrast_label = QLabel("Contrast [Range: 0.0:4.0]")
@@ -139,8 +139,16 @@ class annot3dGUI(QMainWindow):
         side_panel_frame.setMinimumWidth(200)
         side_panel_frame.setFrameStyle(QFrame.WinPanel)
         side_panel_frame.setLayout(side_panel_v_box)
+        
+        
+        
         main_h_box = QHBoxLayout()
-        main_h_box.addWidget(self.image_label, 1)
+        
+        self.scene = GraphicsScene()
+        self.view = QGraphicsView(self.scene)
+        
+        #main_h_box.addWidget(self.image_label, 1)
+        main_h_box.addWidget(self.view)
         main_h_box.addWidget(side_panel_frame)
         # Create container widget and set main window's widget
         container = QWidget()
