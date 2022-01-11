@@ -6,7 +6,8 @@ from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import QTimer
 from libs.imagefuncs import readNdArray
-from GraphicsScene import *
+#from GraphicsScene import *
+from drawCanvas import *
 
 style_sheet = """
     QLabel#ImageLabel{
@@ -144,9 +145,12 @@ class annot3dGUI(QMainWindow):
         
         main_h_box = QHBoxLayout()
         
-        self.scene = GraphicsScene()
-        self.view = QGraphicsView(self.scene)
+        # adjust
+        #self.scene = GraphicsScene()
+        #self.view = QGraphicsView(self.scene)
         
+        self.view = widgetScene(main_h_box)
+        self.scene = self.view.getScene()
         #main_h_box.addWidget(self.image_label, 1)
         main_h_box.addWidget(self.view)
         main_h_box.addWidget(side_panel_frame)
@@ -172,6 +176,9 @@ class annot3dGUI(QMainWindow):
         save_act = QAction('Save...', self)
         save_act.setShortcut('Ctrl+S')
         save_act.triggered.connect(self.saveImageFile)
+        exit_act = QAction('Exit...', self)
+        exit_act.setShortcut('Ctrl+Q')
+        exit_act.triggered.connect(self.exitProgram)
         # Create menu bar
         menu_bar = self.menuBar()
         menu_bar.setNativeMenuBar(False)
@@ -180,3 +187,7 @@ class annot3dGUI(QMainWindow):
         file_menu.addAction(open_act)
         file_menu.addAction(open_3d_act)
         file_menu.addAction(save_act)
+        file_menu.addAction(exit_act)
+    
+    def exitProgram(self):
+        QCoreApplication.quit()

@@ -7,7 +7,7 @@ class GraphicsScene(QtWidgets.QGraphicsScene):
         self._current_rect_item = None
 
     def mousePressEvent(self, event):
-        if self.itemAt(event.scenePos(), QtGui.QTransform()) is None:
+        if self.itemAt(event.scenePos(), QtGui.QTransform()) is not None:
             self._current_rect_item = QtWidgets.QGraphicsRectItem()
             self._current_rect_item.setPen(QtCore.Qt.red)
             self._current_rect_item.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, True)

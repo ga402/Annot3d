@@ -311,7 +311,7 @@ class annot3d(annot3dGUI, QWidget):
             y0 = y
             y1 = y + self.y_length
               
-        return image[z, x0:x1, y0:y1, :].squeeze()
+        return image[z, x0:x1, y0:y1, :].squeeze()*4
 
 
 
@@ -335,6 +335,7 @@ class annot3d(annot3dGUI, QWidget):
             )
         )
         self.image_label.setCursor(Qt.CrossCursor)
+        
         self.scene.addItem(self.pixmap_item)
 
 
