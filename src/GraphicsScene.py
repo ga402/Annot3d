@@ -5,6 +5,8 @@ class GraphicsScene(QtWidgets.QGraphicsScene):
         super(GraphicsScene, self).__init__(QtCore.QRectF(0, 0, 512, 512),parent)
         self._start = QtCore.QPointF()
         self._current_rect_item = None
+        self._coordDict= {}
+        self._rectN = None
 
     def mousePressEvent(self, event):
         if self.itemAt(event.scenePos(), QtGui.QTransform()) is not None:
@@ -24,5 +26,17 @@ class GraphicsScene(QtWidgets.QGraphicsScene):
         super(GraphicsScene, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
+        #print(f"{self._current_rect_item.boundingRect=}")
+        print(f"{self._start.x()=}, {event.scenePos().x()=}")
         self._current_rect_item = None
         super(GraphicsScene, self).mouseReleaseEvent(event)
+    
+    def setRectN(self, rectN):
+        self._rectN = rectN
+    
+    def getRectN(self, rectN):
+        return self._rectN
+    
+    def getPositions(self, event):
+        return self._start.x(), self._start.y(), self.scenePos().x(), self.scenePos().y()
+    
