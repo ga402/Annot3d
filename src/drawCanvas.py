@@ -17,7 +17,7 @@ class widgetScene(QWidget):
         #layout = QVBoxLayout()
         layout.addWidget(self.view)
         #self.setLayout(layout)
-        self.pixmap_item = QGraphicsPixmapItem()
+        #self.pixmap_item = QGraphicsPixmapItem()
         self._rectN = 0
         self.scene.setRectN(self._rectN)
         #self.pixmap_item.setPixmap(self._image)
@@ -28,8 +28,10 @@ class widgetScene(QWidget):
     def getScene(self):
         return self.scene
     
-    def updateRectN(self):
-        self._rectN = self.scene.getRectN()
+
+        
+ 
+        
     
     
 

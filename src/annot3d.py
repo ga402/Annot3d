@@ -84,6 +84,7 @@ class annot3d(annot3dGUI, QWidget):
             self.z = self.z -1
             
         img = self.subsetImage(self.arr, self.z, self.x, self.y)
+        self.scene.setZ(self.z)
         self.convert2DArrToQImage(img)  
 
     def pushUpButton(self):
@@ -93,6 +94,7 @@ class annot3d(annot3dGUI, QWidget):
             self.z = self.z + 1
             
         img = self.subsetImage(self.arr, self.z, self.x, self.y)
+        self.scene.setZ(self.z)
         self.convert2DArrToQImage(img)  
 
     def joystick_up(self):
@@ -215,6 +217,9 @@ class annot3d(annot3dGUI, QWidget):
             self.copy_cv_image = self.cv_image  # A copy of the original image
             # Create a destination image for the contrast and brightness processes
             self.processed_cv_image = np.zeros(self.cv_image.shape, self.cv_image.dtype)
+            
+            
+            
             self.convertCVToQImage(
                 self.cv_image
             )  # Convert the OpenCV image to a Qt Image
@@ -285,7 +290,6 @@ class annot3d(annot3dGUI, QWidget):
 
 
     def subsetImage(self, image, z, x, y):
-        
         if z >= self.z_max and z >= 0:
             z = self.z_max
         elif z <0:
@@ -334,8 +338,7 @@ class annot3d(annot3dGUI, QWidget):
                 self.image_label.width(), self.image_label.height(), Qt.KeepAspectRatio
             )
         )
-        self.image_label.setCursor(Qt.CrossCursor)
-        
+        #self.image_label.setCursor(Qt.CrossCursor)
         self.scene.addItem(self.pixmap_item)
 
 
